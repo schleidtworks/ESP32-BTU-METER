@@ -96,7 +96,15 @@ This entire install reflects the European approach to hydronic heating, which is
 | **Heat Emitters** | Fan coils, radiant, low-temp radiators | Fin tube baseboard, cast iron radiators |
 | **Efficiency** | Higher COP at lower temps | Lower efficiency at high temps |
 
-**Important:** This low-temperature approach likely **will NOT work** with standard American fin tube baseboard radiators, which are designed for 180°F water. The lower water temperature won't provide enough heat output from traditional fin tube.
+**Important:** This low-temperature approach likely **will NOT work** with:
+- Standard American fin tube baseboard radiators (designed for 180°F water)
+- Steam systems (even higher temperature)
+
+The lower water temperature won't provide enough heat output from these traditional high-temp emitters.
+
+**Wall-Mounted Options:** If you have fin tube or steam and want to convert, they do make wall-mounted hydronic fan coil units that work with low-temp water. Just run PEX to them and plug them in. I'm adding:
+- Wall-mounted unit in the space above the garage
+- Ductless-style wall unit in the garage
 
 **Location:** Lyme, CT (ASHRAE Climate Zone 5A - Cool/Humid). Despite our New England winters, the system has performed just fine with the ~115°F supply water temperature using properly sized fan coil AHUs.
 
