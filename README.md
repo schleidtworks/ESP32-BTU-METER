@@ -73,6 +73,9 @@ Always audit your utility accounts when buying a home.
 
 ## Data & Analysis
 
+### Manual J Load Calculation
+Used the **[Hover app](https://hover.to/)** to create a 3D model of my home from smartphone photos, then performed a Manual J load calculation to properly size the heat pump system. This is the ACCA-standard method for residential HVAC sizing.
+
 ### Oil Usage Baseline
 Used a **[Smart Oil Gauge](https://www.smartoilgauge.com/)** to track gallons consumed vs. outdoor temperature before conversion. This data helped calculate BTU requirements for all zones.
 
