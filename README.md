@@ -96,9 +96,20 @@ This project includes a DIY ESP32-based BTU monitoring system to track real-time
 
 ## Timeline
 
-- **2022** - Purchased home, discovered HVAC chaos
-- **2022** - Installed Smart Oil Gauge to baseline usage
-- **[Add your milestones]**
+This was a multi-year project - the easy part was getting the components, the hard part was finding time to install everything.
+
+### 2022
+- Purchased home, discovered HVAC chaos (3 propane companies, outdated everything, no A/C)
+- Installed Smart Oil Gauge to baseline oil usage vs. outdoor temperature
+- First winter here - survived on the old system while planning the conversion
+- Started ordering components for the new system
+
+### 2023
+- **Summer 2023** - The big demolition. Cut out the old system, removed oil tanks and old HVAC equipment with help from my brother
+- Installed the Apollo air-to-water heat pump and indoor pumping station
+- Ran the 6" conduit from main house to carriage garage
+- Connected all three AHUs to the new system
+- **Thanksgiving 2023** - System fully operational for the heating season
 
 ## License
 
