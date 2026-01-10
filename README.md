@@ -87,6 +87,19 @@ The Apollo 5-ton was **not** an easy install despite what the marketing suggests
 
 3. **⚠️ SAFETY WARNING: 240V comm signal** - They use **240V for the communication signal** between the indoor and outdoor units. This is NOT standard in the US where we typically use 24V for HVAC control signals. **This could seriously injure someone** who assumes it's low voltage like standard US HVAC systems. Always verify voltage before touching any wires!
 
+### European-Style Low Temperature Design
+This entire install reflects the European approach to hydronic heating, which is very different from traditional American systems:
+
+| | European/Air-to-Water | Traditional American |
+|---|---|---|
+| **Water Temperature** | ~115°F (46°C) | ~180°F (82°C) |
+| **Heat Emitters** | Fan coils, radiant, low-temp radiators | Fin tube baseboard, cast iron radiators |
+| **Efficiency** | Higher COP at lower temps | Lower efficiency at high temps |
+
+**Important:** This low-temperature approach likely **will NOT work** with standard American fin tube baseboard radiators, which are designed for 180°F water. The lower water temperature won't provide enough heat output from traditional fin tube.
+
+**Location:** Lyme, CT (ASHRAE Climate Zone 5A - Cool/Humid). Despite our New England winters, the system has performed just fine with the ~115°F supply water temperature using properly sized fan coil AHUs.
+
 ## Data & Analysis
 
 ### Manual J Load Calculation
