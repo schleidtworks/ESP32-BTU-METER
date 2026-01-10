@@ -78,6 +78,15 @@ After a year of operation, I noticed via my [Sense energy monitor](https://sense
 - Upgraded to 30-gallon buffer tank (installation in progress)
 - Adding proper TT/comm wire control back to the Apollo unit
 
+### Apollo/MBTEK Installation Gotchas
+The Apollo 5-ton was **not** an easy install despite what the marketing suggests. The installation instructions were lacking. Here are some gotchas for anyone attempting this:
+
+1. **Software startup required** - The unit has to be turned on through software on the control unit. There's no physical power button. Why not just have a button?
+
+2. **240V polarity matching** - The indoor pumping station needs to be on the **same polarity** of 240V as the outdoor unit. If you wire them out of phase, it won't communicate properly.
+
+3. **⚠️ SAFETY WARNING: 240V comm signal** - They use **240V for the communication signal** between the indoor and outdoor units. This is NOT standard in the US where we typically use 24V for HVAC control signals. **This could seriously injure someone** who assumes it's low voltage like standard US HVAC systems. Always verify voltage before touching any wires!
+
 ## Data & Analysis
 
 ### Manual J Load Calculation
