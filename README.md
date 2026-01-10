@@ -122,24 +122,53 @@ See the [data folder](./data/) for historical usage data.
 
 ```
 ESP32-BTU-METER/
-├── src/              # ESP32 BTU meter firmware
-├── lib/              # Libraries and dependencies
+├── src/
+│   └── BTUmeter.ino       # ESP32 Arduino firmware
+├── dashboard/
+│   ├── hmi/               # 🎮 Retro 8-bit HMI web dashboard
+│   │   ├── index.html
+│   │   ├── style.css
+│   │   └── app.js
+│   ├── backend_simulator.py   # MQTT data simulator
+│   ├── docker-compose.yml     # Mosquitto MQTT broker
+│   └── mosquitto.conf
+├── lib/                   # Libraries and dependencies
 ├── docs/
-│   ├── equipment/    # Equipment specifications and manuals
-│   └── zones/        # Zone-by-zone documentation
-├── data/             # Oil usage data, BTU calculations
+│   ├── equipment/         # Equipment specifications and manuals
+│   └── zones/             # Zone-by-zone documentation
+├── data/                  # Oil usage data, BTU calculations
 ├── photos/
-│   ├── before/       # Original HVAC setup
-│   ├── installation/ # Installation progress
-│   ├── equipment/    # Equipment photos
-│   └── completed/    # Finished installation
-├── schematics/       # Wiring diagrams and piping layouts
+│   ├── before/            # Original HVAC setup
+│   ├── installation/      # Installation progress
+│   ├── equipment/         # Equipment photos
+│   └── completed/         # Finished installation
+├── schematics/            # Wiring diagrams and piping layouts
 └── README.md
 ```
 
 ## 🌡️ BTU Monitoring System
 
-This project includes a DIY ESP32-based BTU monitoring system to track real-time energy usage across all zones. See the [src folder](./src/) for firmware.
+This project includes a DIY ESP32-based BTU monitoring system to track real-time energy usage across all zones.
+
+### 🔧 Hardware Components
+- **ESP32 Dev Board** - WiFi-enabled microcontroller
+- **DS18B20 Waterproof Temp Sensors** - OneWire digital sensors from [Adafruit](https://www.adafruit.com/product/381), can be daisy-chained on a single data wire
+- **Hall Effect Flow Meters** - GREDIA meters from Amazon with metric threads (need NPT adapters for 1" and 1/2" lines)
+
+### 🎮 Retro HMI Dashboard
+The `dashboard/hmi/` folder contains a retro 8-bit pixel art style web dashboard that displays:
+- 🔴🔵 **Animated pipe flow** - Red supply lines, blue return lines with flowing animation
+- ⚡ **Live COP** - Coefficient of Performance (BTU out / kW in)
+- 📊 **Yearly COP Average** - Historical efficiency tracking
+- 💧 **Loop Pressure** - PSI gauge with alerts
+- 🌀 **Pump Status** - Real-time on/off indicators for each Grundfos pump
+- 🌡️ **Zone Temperatures** - Supply, return, and ΔT for each AHU
+- 🔥 **BTU/hr per Zone** - Live energy output tracking
+
+### 📡 MQTT Architecture
+Data flows from ESP32 sensors → MQTT broker → Web dashboard via WebSockets. This decouples the sensor hardware from the display, allowing multiple dashboards and data logging.
+
+See the [src folder](./src/) for ESP32 firmware and [dashboard folder](./dashboard/) for the web HMI.
 
 ## 🛒 Equipment Links
 
@@ -153,6 +182,9 @@ This project includes a DIY ESP32-based BTU monitoring system to track real-time
 | 💧 Grundfos Circulation Pumps | [Grundfos](https://www.grundfos.com/us) |
 | 🔧 Mixing Valves | [Alibaba Hydronic Valves](https://www.alibaba.com/showroom/underfloor-heating-mixing-valve.html) |
 | 🔗 PEX, Fittings, Pumps, etc. | [SupplyHouse.com](https://www.supplyhouse.com/) |
+| 🌡️ DS18B20 Temp Sensors | [Adafruit Waterproof DS18B20](https://www.adafruit.com/product/381) - OneWire, can be daisy-chained |
+| 🌊 Hall Effect Flow Meters | [Amazon - GREDIA Flow Meter](https://www.amazon.com/dp/B086W6TTS6) - Metric threads, need NPT adapters |
+| 🔌 ESP32 Dev Board | [Amazon/Adafruit](https://www.adafruit.com/product/3405) |
 
 ## 🛠️ Installation Approach
 

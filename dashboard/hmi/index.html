@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🏠 Honey Hill HVAC - Retro HMI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="hmi">
+    <!-- Header -->
+    <header>
+      <h1>🏠 HONEY HILL HVAC SYSTEM</h1>
+      <div class="status-bar">
+        <span id="conn-status">⏳ Connecting...</span>
+        <span id="clock">--:--:--</span>
+        <span id="outdoor-temp">🌡️ Outdoor: --°F</span>
+      </div>
+    </header>
+
+    <!-- Main Schematic Area -->
+    <div class="schematic">
+      <!-- Heat Pump Unit -->
+      <div class="equipment heat-pump" id="heat-pump">
+        <div class="label">APOLLO 5-TON</div>
+        <div class="status" id="hp-status">STANDBY</div>
+        <div class="icon">❄️🔥</div>
+        <div class="stats">
+          <div>Supply: <span id="hp-supply">--</span>°F</div>
+          <div>Return: <span id="hp-return">--</span>°F</div>
+        </div>
+      </div>
+
+      <!-- Buffer Tank -->
+      <div class="equipment buffer-tank" id="buffer-tank">
+        <div class="label">BUFFER 30 GAL</div>
+        <div class="tank-visual">
+          <div class="tank-level" id="tank-level"></div>
+          <div class="tank-temp" id="tank-temp">--°F</div>
+        </div>
+      </div>
+
+      <!-- Piping SVG Overlay -->
+      <svg class="pipes" viewBox="0 0 1200 700">
+        <!-- Supply Line (Hot - Red) -->
+        <path id="supply-main" class="pipe supply flow" d="M 180 200 H 400 V 150 H 600"/>
+        <path id="supply-ahu1" class="pipe supply flow" d="M 600 150 H 800"/>
+        <path id="supply-ahu2" class="pipe supply flow" d="M 600 150 V 300 H 800"/>
+        <path id="supply-ahu3" class="pipe supply flow" d="M 600 300 V 450 H 800"/>
+        <path id="supply-snow" class="pipe supply flow" d="M 400 200 V 550 H 600"/>
+
+        <!-- Return Line (Cold - Blue) -->
+        <path id="return-main" class="pipe return flow-reverse" d="M 180 240 H 350 V 190 H 550"/>
+        <path id="return-ahu1" class="pipe return flow-reverse" d="M 800 180 H 620 V 190 H 550"/>
+        <path id="return-ahu2" class="pipe return flow-reverse" d="M 800 330 H 620 V 190"/>
+        <path id="return-ahu3" class="pipe return flow-reverse" d="M 800 480 H 620 V 330"/>
+        <path id="return-snow" class="pipe return flow-reverse" d="M 600 580 H 350 V 240"/>
+      </svg>
+
+      <!-- AHU 1 - Main House -->
+      <div class="equipment ahu" id="ahu1" style="left: 800px; top: 100px;">
+        <div class="label">AHU #1</div>
+        <div class="sub-label">Main House</div>
+        <div class="icon" id="ahu1-fan">🌀</div>
+        <div class="stats">
+          <div>ΔT: <span id="ahu1-dt">--</span>°F</div>
+          <div>BTU/hr: <span id="ahu1-btu">--</span></div>
+        </div>
+        <div class="pump-status" id="pump1-status">PUMP: OFF</div>
+      </div>
+
+      <!-- AHU 2 - Garage -->
+      <div class="equipment ahu" id="ahu2" style="left: 800px; top: 260px;">
+        <div class="label">AHU #2</div>
+        <div class="sub-label">Garage</div>
+        <div class="icon" id="ahu2-fan">🌀</div>
+        <div class="stats">
+          <div>ΔT: <span id="ahu2-dt">--</span>°F</div>
+          <div>BTU/hr: <span id="ahu2-btu">--</span></div>
+        </div>
+        <div class="pump-status" id="pump2-status">PUMP: OFF</div>
+      </div>
+
+      <!-- AHU 3 - Studio -->
+      <div class="equipment ahu" id="ahu3" style="left: 800px; top: 420px;">
+        <div class="label">AHU #3</div>
+        <div class="sub-label">700 sq ft Studio</div>
+        <div class="icon" id="ahu3-fan">🌀</div>
+        <div class="stats">
+          <div>ΔT: <span id="ahu3-dt">--</span>°F</div>
+          <div>BTU/hr: <span id="ahu3-btu">--</span></div>
+        </div>
+        <div class="pump-status" id="pump3-status">PUMP: OFF</div>
+      </div>
+
+      <!-- Snow Melt -->
+      <div class="equipment snow-melt" id="snow-melt" style="left: 550px; top: 520px;">
+        <div class="label">❄️ SNOW MELT</div>
+        <div class="sub-label">HBX Controller</div>
+        <div class="stats">
+          <div>Loop: <span id="snow-temp">--</span>°F</div>
+          <div>BTU/hr: <span id="snow-btu">--</span></div>
+        </div>
+        <div class="pump-status" id="pump-snow-status">PUMP: OFF</div>
+      </div>
+
+      <!-- Grundfos Pumps -->
+      <div class="pump-bank">
+        <div class="pump" id="pump-main">
+          <div class="pump-icon">⚙️</div>
+          <div class="pump-label">MAIN</div>
+        </div>
+        <div class="pump" id="pump-ahu1">
+          <div class="pump-icon">⚙️</div>
+          <div class="pump-label">AHU1</div>
+        </div>
+        <div class="pump" id="pump-ahu23">
+          <div class="pump-icon">⚙️</div>
+          <div class="pump-label">AHU2/3</div>
+        </div>
+        <div class="pump" id="pump-snow">
+          <div class="pump-icon">⚙️</div>
+          <div class="pump-label">SNOW</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Panel -->
+    <div class="stats-panel">
+      <div class="stat-card cop">
+        <div class="stat-title">⚡ LIVE COP</div>
+        <div class="stat-value" id="live-cop">--</div>
+        <div class="stat-sub">BTU Out / kW In</div>
+      </div>
+      <div class="stat-card cop-avg">
+        <div class="stat-title">📊 YEARLY AVG COP</div>
+        <div class="stat-value" id="yearly-cop">--</div>
+        <div class="stat-sub">Since Jan 2024</div>
+      </div>
+      <div class="stat-card btu-total">
+        <div class="stat-title">🔥 TOTAL BTU/hr</div>
+        <div class="stat-value" id="total-btu">--</div>
+        <div class="stat-sub">All Zones</div>
+      </div>
+      <div class="stat-card pressure">
+        <div class="stat-title">💧 LOOP PSI</div>
+        <div class="stat-value" id="loop-psi">--</div>
+        <div class="stat-sub">Target: 12-18 PSI</div>
+        <div class="gauge">
+          <div class="gauge-fill" id="psi-gauge"></div>
+        </div>
+      </div>
+      <div class="stat-card flow">
+        <div class="stat-title">🌊 TOTAL FLOW</div>
+        <div class="stat-value" id="total-gpm">--</div>
+        <div class="stat-sub">GPM</div>
+      </div>
+      <div class="stat-card kwh">
+        <div class="stat-title">⚡ POWER IN</div>
+        <div class="stat-value" id="power-kw">--</div>
+        <div class="stat-sub">kW (from Emporia)</div>
+      </div>
+    </div>
+
+    <!-- Alerts Bar -->
+    <div class="alerts-bar" id="alerts">
+      <div class="alert info">🟢 System Normal</div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+\
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Hydronics MQTT Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/mqtt/dist/mqtt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.umd.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 10px; background:#111; color:#f5f5f5; }
+    h1 { text-align:center; margin: 6px 0 2px; }
+    .sub { text-align:center; color:#bbb; margin: 2px 0 10px; }
+    .layout { display:flex; flex-wrap:wrap; gap:16px; }
+    .chart-container { flex:2 1 60%; background:#1b1b1b; padding:10px; border-radius:12px; }
+    .chart-container canvas { width:100% !important; height:420px !important; }
+    .cards { flex:1 1 30%; display:flex; flex-direction:column; gap:10px; }
+    .card { background:#1b1b1b; padding:12px; border-radius:12px; }
+    .card h2 { margin:0 0 6px; font-size:1.05rem; color:#ccc; }
+    .value { font-size:1.8rem; font-weight:bold; }
+    .small { color:#999; font-size:0.85rem; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin: 10px 0 12px; }
+    button { padding:10px 14px; border-radius:12px; border:0; background:#2b2b2b; color:#fff; cursor:pointer; }
+    button:hover { background:#3a3a3a; }
+    @media(max-width:800px){ .chart-container canvas{ height:300px !important; } }
+    code { color:#9fd; }
+  </style>
+</head>
+<body>
+  <h1>Hydronics MQTT Dashboard</h1>
+  <div class="sub">
+    Subscribing to <code>hydronics/main/state</code> via WebSockets • Publishing config to <code>hydronics/config</code>
+  </div>
+
+  <div class="row">
+    <button onclick="publishGPM(2.0)">GPM 2.0</button>
+    <button onclick="publishGPM(3.0)">GPM 3.0</button>
+    <button onclick="publishGPM(4.0)">GPM 4.0</button>
+    <button onclick="chart.resetZoom()">Reset Zoom</button>
+  </div>
+
+  <div class="layout">
+    <div class="chart-container">
+      <canvas id="chart"></canvas>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <h2>Connection</h2>
+        <div class="small" id="conn">Connecting…</div>
+        <div class="small">WS URL: <span id="wsurl"></span></div>
+      </div>
+      <div class="card">
+        <h2>Loop</h2>
+        <div class="value" id="name">--</div>
+      </div>
+      <div class="card">
+        <h2>Supply</h2>
+        <div class="value" id="supply">--</div>
+      </div>
+      <div class="card">
+        <h2>Return</h2>
+        <div class="value" id="return">--</div>
+      </div>
+      <div class="card">
+        <h2>ΔT</h2>
+        <div class="value" id="dt">--</div>
+      </div>
+      <div class="card">
+        <h2>BTU/hr</h2>
+        <div class="value" id="btu">--</div>
+        <div class="small" id="meta">--</div>
+      </div>
+      <div class="card">
+        <h2>Status</h2>
+        <div class="small" id="status">--</div>
+        <div class="small" id="ts">--</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // If you change broker host, update this:
+  const WS_URL = "ws://localhost:9001";
+  document.getElementById("wsurl").textContent = WS_URL;
+
+  const TOPIC_STATE  = "hydronics/main/state";
+  const TOPIC_CONFIG = "hydronics/config";
+
+  const labels=[], sData=[], rData=[], dtData=[], btuData=[];
+  const MAX_POINTS = 1800;
+
+  const ctx = document.getElementById("chart").getContext("2d");
+  const chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        { label: "Supply °F", data: sData, borderWidth: 2, fill: false },
+        { label: "Return °F", data: rData, borderWidth: 2, fill: false },
+        { label: "ΔT °F", data: dtData, borderWidth: 2, borderDash: [5,5], fill: false },
+        { label: "BTU/hr", data: btuData, borderWidth: 2, borderDash: [2,4], fill: false },
+      ]
+    },
+    options: {
+      responsive: true,
+      animation: false,
+      plugins: {
+        legend: { labels: { color: "#f5f5f5" } },
+        zoom: {
+          zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: "x" },
+          pan: { enabled: true, mode: "x" }
+        }
+      },
+      scales: {
+        x: { ticks: { color: "#ccc" } },
+        y: { ticks: { color: "#ccc" } }
+      }
+    }
+  });
+
+  function setText(id, t){ const el=document.getElementById(id); if(el) el.textContent=t; }
+
+  const client = mqtt.connect(WS_URL);
+  window.client = client;
+
+  client.on("connect", () => {
+    setText("conn", "Connected ✅");
+    client.subscribe(TOPIC_STATE);
+  });
+
+  client.on("reconnect", () => setText("conn", "Reconnecting…"));
+  client.on("offline",   () => setText("conn", "Offline ❌"));
+  client.on("error",     (e) => setText("conn", "Error: " + e));
+
+  client.on("message", (topic, payload) => {
+    if(topic !== TOPIC_STATE) return;
+    try {
+      const d = JSON.parse(payload.toString("utf-8"));
+
+      setText("name", d.name ?? "--");
+      setText("supply", (d.supplyF ?? NaN).toFixed(2) + " °F");
+      setText("return", (d.returnF ?? NaN).toFixed(2) + " °F");
+      setText("dt", (d.deltaT ?? NaN).toFixed(2) + " °F");
+      setText("btu", Math.round(d.btuPerHour ?? NaN).toString());
+      setText("meta", "GPM=" + (d.gpm ?? 0).toFixed(2) + " • 500×GPM×ΔT");
+      setText("status", d.status ?? "--");
+      setText("ts", "ts=" + new Date((d.ts ?? Date.now())*1000).toLocaleString());
+
+      const idx = labels.length === 0 ? 0 : labels[labels.length - 1] + 1;
+      labels.push(idx);
+      if(labels.length > MAX_POINTS){
+        labels.shift(); sData.shift(); rData.shift(); dtData.shift(); btuData.shift();
+      }
+      sData.push(d.supplyF ?? null);
+      rData.push(d.returnF ?? null);
+      dtData.push(d.deltaT ?? null);
+      btuData.push(d.btuPerHour ?? null);
+
+      chart.update("none");
+    } catch(e) {
+      console.error(e);
+    }
+  });
+
+  function publishGPM(gpm){
+    const msg = JSON.stringify({ gpm });
+    client.publish(TOPIC_CONFIG, msg, { qos: 0, retain: false });
+  }
+  window.publishGPM = publishGPM;
+  window.chart = chart;
+</script>
+</body>
+</html>
