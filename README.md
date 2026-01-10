@@ -2,6 +2,22 @@
 
 A complete documentation of converting a 1994-era home from oil/propane heating to a modern air-to-water heat pump system, including DIY BTU monitoring with ESP32.
 
+## About the Author
+
+**Devin Schleidt** - Energy Consultant | [LinkedIn](https://www.linkedin.com/in/devinschleidt) | [Schleidt Works](https://schleidtworks.com/)
+
+- **Background**: Electro-mechanical training from [Vinal Technical High School](https://vinal.cttech.org/) (Middletown, CT)
+- **Education**: B.S. Finance & Economics, Fordham University
+- **Current**: Energy efficiency consultant specializing in utility programs, decarbonization, and emerging technologies like high-efficiency heat pumps
+
+I work in energy efficiency consulting, helping utility companies design rebate programs and advising on electrification strategies. This project is me practicing what I preach - and documenting whether an air-to-water heat pump conversion is truly cost-effective compared to staying on oil.
+
+## Project Goal
+
+**Is air-to-water heat pump heating/cooling more cost-effective than oil?**
+
+This project tracks real-world BTU usage and energy costs to answer that question with actual data from my home.
+
 ## The Story
 
 In 2022, I purchased a home with completely outdated HVAC and no A/C. The property has three distinct spaces:
