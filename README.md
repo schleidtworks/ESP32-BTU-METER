@@ -23,12 +23,12 @@ This project tracks real-world BTU usage and energy costs to answer that questio
 In 2022, I purchased a home with completely outdated HVAC and no A/C. The property has three distinct spaces:
 - 🏠 **Main House**
 - 🚗 **Garage** (cinder block construction, one wall below grade)
-- 🏢 **Tenant Space** (above the garage, built in 1994 with better thermal shell)
+- 🏢 **700 sq ft Studio** (above the garage, built in 1994 with better thermal shell)
 
 The previous setup was a mess - **three different propane companies** were servicing the property:
 1. One for the main house (no appliance even connected! 🤦)
 2. One for the fireplace
-3. One for the space above the garage
+3. One for the 700 sq ft studio
 
 Working in energy efficiency, I wanted to practice what I preach. This project documents my journey to a high-efficiency air-to-water heat pump system.
 
@@ -53,7 +53,7 @@ I chose an air-to-water system for several reasons:
 |-----|----------|------|
 | AHU 1 | 🏠 Main House | Dedicated pump |
 | AHU 2 | 🚗 Garage | Shared pump (with AHU 3) |
-| AHU 3 | 🏢 Space above garage | Shared pump (with AHU 2) |
+| AHU 3 | 🏢 700 sq ft Studio | Shared pump (with AHU 2) |
 
 ### ❄️ Snow Melt System
 - **[HBX SNO-0600 Control System](https://hbxcontrols.com/products/sno-0600)** - WiFi-enabled snow melt control
@@ -103,7 +103,7 @@ This entire install reflects the European approach to hydronic heating, which is
 The lower water temperature won't provide enough heat output from these traditional high-temp emitters.
 
 **✅ Wall-Mounted Options:** If you have fin tube or steam and want to convert, they do make wall-mounted hydronic fan coil units that work with low-temp water. Just run PEX to them and plug them in. I'm adding:
-- Wall-mounted unit in the space above the garage
+- Wall-mounted unit in the 700 sq ft studio
 - Ductless-style wall unit in the garage
 
 **📍 Location:** Lyme, CT (ASHRAE Climate Zone 5A - Cool/Humid). Despite our New England winters, the system has performed just fine with the ~115°F supply water temperature using properly sized fan coil AHUs.
@@ -197,7 +197,7 @@ After living with the system for a year, I identified improvements needed:
 - **💧 Dedicated [Grundfos pumps](https://www.grundfos.com/us)** for each load (except DHW):
   - AHU 1 (Main House) - dedicated Grundfos pump
   - AHU 2 (Garage) - dedicated Grundfos pump
-  - AHU 3 (Above garage) - dedicated Grundfos pump
+  - AHU 3 (700 sq ft Studio) - dedicated Grundfos pump
   - Snow melt - dedicated Grundfos pump
 - **🌡️ ESP32 BTU monitoring** - Building custom meters to get the detailed per-zone BTU data that neither Sense nor Emporia can provide
 
