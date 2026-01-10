@@ -227,10 +227,9 @@ After living with the system for a year, I identified improvements needed:
 - ✅ Upgraded buffer tank from 15 gallons to 30 gallons (installation in progress)
 - ✅ Need to add comm wire back to Apollo for proper on/off signaling
 - **💧 Dedicated [Grundfos pumps](https://www.grundfos.com/us)** for each load (except DHW):
-  - AHU 1 (Main House) - dedicated Grundfos pump
-  - AHU 2 (Garage) - dedicated Grundfos pump
-  - AHU 3 (700 sq ft Studio) - dedicated Grundfos pump
-  - Snow melt - dedicated Grundfos pump
+  - AHU 1 (Main House) - Pump 1 (dedicated Grundfos ALPHA)
+  - AHU 2 + AHU 3 (Garage + Studio) - Pump 2 (shared, splits after conduit)
+  - Snow melt (HBX controlled) - Pump 3 (dedicated Grundfos ALPHA)
 - **🌡️ ESP32 BTU monitoring** - Building custom meters to get the detailed per-zone BTU data that neither Sense nor Emporia can provide
 
 ## 📄 License
