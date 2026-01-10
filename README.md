@@ -101,6 +101,8 @@ This was a DIY project with some help:
 - **Self-installed** with general labor assistance
 - **Parts sourced from** [SupplyHouse.com](https://www.supplyhouse.com/) - great for PEX, fittings, circulators, expansion tanks, and all the hydronic supplies
 - **Demo help** from my brother for removing old equipment and tanks
+- **Sheet metal work** - Hired a sheet metal guy to connect the AHUs to existing ductwork
+- **Duct cleaning & insulation** - [Duct Diagnostics](https://ductdiagnostics.com/) cleaned the ducts and wrapped/insulated them for cooling mode (prevents condensation)
 
 ## Timeline
 
