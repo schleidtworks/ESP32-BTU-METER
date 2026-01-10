@@ -1,0 +1,26 @@
+# Build files
+.pio/
+.pioenvs/
+.piolibdeps/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Credentials (never commit these!)
+secrets.h
+credentials.h
+config_local.h
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Compiled files
+*.o
+*.elf
+*.bin
+*.hex
