@@ -93,6 +93,14 @@ This project includes a DIY ESP32-based BTU monitoring system to track real-time
 | HBX Snow Melt Control | [HBX Controls](https://hbxcontrols.com/products/sno-0600) |
 | Smart Oil Gauge | [smartoilgauge.com](https://www.smartoilgauge.com/) |
 | Mixing Valves | [Alibaba Hydronic Valves](https://www.alibaba.com/showroom/underfloor-heating-mixing-valve.html) |
+| PEX, Fittings, Pumps, etc. | [SupplyHouse.com](https://www.supplyhouse.com/) |
+
+## Installation Approach
+
+This was a DIY project with some help:
+- **Self-installed** with general labor assistance
+- **Parts sourced from** [SupplyHouse.com](https://www.supplyhouse.com/) - great for PEX, fittings, circulators, expansion tanks, and all the hydronic supplies
+- **Demo help** from my brother for removing old equipment and tanks
 
 ## Timeline
 
