@@ -71,6 +71,13 @@ Everything needs to be insulated! In summer, cooling mode will cause condensatio
 ### Three Propane Companies?!
 Always audit your utility accounts when buying a home.
 
+### Short Cycling / Idling Discovery
+After a year of operation, I noticed via my [Sense energy monitor](https://sense.com/) that the Apollo unit was short cycling. Added an [Emporia Vue](https://www.emporiaenergy.com/) with CT clamps on the Apollo, pump station, and AHU to dig deeper. The data showed the real issue: **the unit was constantly idling** because the TT (thermostat terminal) connection wasn't telling the unit to shut off. Without proper TT/comm wire signaling, the Apollo was just reacting to the undersized 15-gallon buffer tank temperature.
+
+**Solution:**
+- Upgraded to 30-gallon buffer tank (installation in progress)
+- Adding proper TT/comm wire control back to the Apollo unit
+
 ## Data & Analysis
 
 ### Manual J Load Calculation
@@ -111,6 +118,9 @@ This project includes a DIY ESP32-based BTU monitoring system to track real-time
 | Apollo 5-ton Heat Pump | [MBTEK](https://www.mbtek.com/products/apollo-heatpump-60k-btu) / [Apollo Heat Pumps](https://apolloheatpumps.com/products/apollo-5t) |
 | HBX Snow Melt Control | [HBX Controls](https://hbxcontrols.com/products/sno-0600) |
 | Smart Oil Gauge | [smartoilgauge.com](https://www.smartoilgauge.com/) |
+| Sense Energy Monitor | [sense.com](https://sense.com/) |
+| Emporia Vue Energy Monitor | [Emporia Energy](https://www.emporiaenergy.com/) / [Amazon](https://www.amazon.com/dp/B08CJGPHL9) |
+| Grundfos Circulation Pumps | [Grundfos](https://www.grundfos.com/us) |
 | Mixing Valves | [Alibaba Hydronic Valves](https://www.alibaba.com/showroom/underfloor-heating-mixing-valve.html) |
 | PEX, Fittings, Pumps, etc. | [SupplyHouse.com](https://www.supplyhouse.com/) |
 
@@ -139,6 +149,27 @@ This was a multi-year project - the easy part was getting the components, the ha
 - Ran the 6" conduit from main house to carriage garage
 - Connected all three AHUs to the new system
 - **Thanksgiving 2023** - System fully operational for the heating season
+
+### 2024-2025 - System Expansion & Monitoring (Current Phase)
+After living with the system for a year, I identified improvements needed:
+
+**Monitoring Evolution:**
+- [Sense energy monitor](https://sense.com/) - good for whole-house, but doesn't provide detailed enough per-circuit data
+- Added [Emporia Vue](https://www.emporiaenergy.com/) with CT clamps on specific circuits to dig deeper:
+  - Apollo heat pump unit
+  - Indoor pumping station
+  - AHU
+- This detailed monitoring revealed the short cycling issue
+
+**System Upgrades:**
+- Upgraded buffer tank from 15 gallons to 30 gallons (installation in progress)
+- Need to add comm wire back to Apollo for proper on/off signaling
+- **Dedicated [Grundfos pumps](https://www.grundfos.com/us)** for each load (except DHW):
+  - AHU 1 (Main House) - dedicated Grundfos pump
+  - AHU 2 (Garage) - dedicated Grundfos pump
+  - AHU 3 (Above garage) - dedicated Grundfos pump
+  - Snow melt - dedicated Grundfos pump
+- **ESP32 BTU monitoring** - Building custom meters to get the detailed per-zone BTU data that neither Sense nor Emporia can provide
 
 ## License
 
