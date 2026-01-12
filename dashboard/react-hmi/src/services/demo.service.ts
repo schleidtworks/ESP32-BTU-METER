@@ -287,10 +287,12 @@ function generateWeather(): WeatherState {
  */
 function generateAlerts(state: Partial<HvacSystemState>): Alert[] {
   const alerts: Alert[] = [];
+  const now = new Date();
 
   // Check pressure
   const pressure = state.buffer?.pressure ?? 15;
   if (pressure < DEFAULT_THRESHOLDS.minPressure) {
+    const startTime = new Date(now.getTime() - 15 * 60 * 1000); // Started 15 mins ago
     alerts.push({
       id: 'low-pressure',
       level: 'warning',
@@ -298,19 +300,24 @@ function generateAlerts(state: Partial<HvacSystemState>): Alert[] {
       source: 'Buffer Tank',
       value: pressure,
       threshold: DEFAULT_THRESHOLDS.minPressure,
-      timestamp: new Date(),
+      timestamp: now,
+      startTime: startTime,
+      endTime: undefined, // Still ongoing
       acknowledged: false,
     });
   }
 
   // Normal status if no alerts
   if (alerts.length === 0) {
+    const startTime = new Date(now.getTime() - 60 * 60 * 1000); // Started 1 hour ago
     alerts.push({
       id: 'system-normal',
       level: 'info',
       message: 'System Normal',
       source: 'System',
-      timestamp: new Date(),
+      timestamp: now,
+      startTime: startTime,
+      endTime: undefined,
       acknowledged: true,
     });
   }

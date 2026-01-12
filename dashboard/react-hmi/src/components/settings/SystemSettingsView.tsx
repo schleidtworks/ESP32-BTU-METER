@@ -3,10 +3,18 @@
  * Configuration and ESP32 GPIO mapping display
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CollapsibleSection, StatCard } from '../common';
 import { ESP32PinMap } from './ESP32PinMap';
 import { REFRESH_RATES, BTU_FACTOR, BTU_PER_KW, DEFAULT_THRESHOLDS, LOCATION } from '../../config/system.config';
+import {
+  getEmailSettings,
+  saveEmailSettings,
+  addRecipient,
+  removeRecipient,
+  isValidEmail,
+  type EmailSettings,
+} from '../../services/emailSettings.service';
 
 interface SensorConfig {
   id: string;
@@ -80,6 +88,42 @@ function SensorTable({ sensors, title }: { sensors: SensorConfig[]; title: strin
 export function SystemSettingsView() {
   const [apiKey, setApiKey] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
+  const [emailSettings, setEmailSettings] = useState<EmailSettings>(getEmailSettings());
+  const [newEmail, setNewEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
+
+  // Load email settings on mount
+  useEffect(() => {
+    setEmailSettings(getEmailSettings());
+  }, []);
+
+  const handleEmailSettingChange = (key: keyof EmailSettings, value: boolean | string | number) => {
+    const updated = saveEmailSettings({ [key]: value });
+    setEmailSettings(updated);
+  };
+
+  const handleAddEmail = () => {
+    setEmailError('');
+    if (!newEmail.trim()) return;
+
+    if (!isValidEmail(newEmail)) {
+      setEmailError('Invalid email format');
+      return;
+    }
+
+    try {
+      const updated = addRecipient(newEmail);
+      setEmailSettings(updated);
+      setNewEmail('');
+    } catch (e) {
+      setEmailError(e instanceof Error ? e.message : 'Failed to add email');
+    }
+  };
+
+  const handleRemoveEmail = (email: string) => {
+    const updated = removeRecipient(email);
+    setEmailSettings(updated);
+  };
 
   return (
     <div className="settings-view">
@@ -166,6 +210,123 @@ export function SystemSettingsView() {
               Enter your API key to enable AI-powered analysis. Supports both OpenAI (GPT) and Anthropic (Claude).
               Keys starting with "sk-ant-" will use Claude, others use GPT.
             </div>
+          </div>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="EMAIL REPORTS" defaultOpen={false}>
+        <div className="settings-form">
+          <div className="settings-form-group">
+            <label className="settings-checkbox-label">
+              <input
+                type="checkbox"
+                checked={emailSettings.enabled}
+                onChange={(e) => handleEmailSettingChange('enabled', e.target.checked)}
+                className="settings-checkbox"
+              />
+              <span>Enable Email Reports</span>
+            </label>
+          </div>
+
+          <div className="settings-form-group">
+            <label className="settings-label">Report Recipients</label>
+            <div className="email-list">
+              {emailSettings.recipients.length === 0 ? (
+                <div className="settings-note">No recipients added</div>
+              ) : (
+                emailSettings.recipients.map(email => (
+                  <div key={email} className="email-recipient">
+                    <span>{email}</span>
+                    <button
+                      type="button"
+                      className="email-remove-btn"
+                      onClick={() => handleRemoveEmail(email)}
+                      title="Remove"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="api-key-input-group" style={{ marginTop: '8px' }}>
+              <input
+                type="email"
+                className="settings-input"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder="email@example.com"
+                onKeyDown={(e) => e.key === 'Enter' && handleAddEmail()}
+              />
+              <button
+                type="button"
+                className="range-button"
+                onClick={handleAddEmail}
+              >
+                ADD
+              </button>
+            </div>
+            {emailError && <div className="settings-error">{emailError}</div>}
+          </div>
+
+          <div className="settings-form-group">
+            <label className="settings-label">Report Frequency</label>
+            <div className="settings-checkbox-group">
+              <label className="settings-checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={emailSettings.dailyReport}
+                  onChange={(e) => handleEmailSettingChange('dailyReport', e.target.checked)}
+                  className="settings-checkbox"
+                />
+                <span>Daily Report</span>
+              </label>
+              <label className="settings-checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={emailSettings.monthlyReport}
+                  onChange={(e) => handleEmailSettingChange('monthlyReport', e.target.checked)}
+                  className="settings-checkbox"
+                />
+                <span>Monthly Report</span>
+              </label>
+            </div>
+          </div>
+
+          {emailSettings.dailyReport && (
+            <div className="settings-form-group">
+              <label className="settings-label">Daily Report Time</label>
+              <input
+                type="time"
+                className="settings-input"
+                value={emailSettings.reportTime}
+                onChange={(e) => handleEmailSettingChange('reportTime', e.target.value)}
+                style={{ width: '120px' }}
+              />
+            </div>
+          )}
+
+          {emailSettings.monthlyReport && (
+            <div className="settings-form-group">
+              <label className="settings-label">Monthly Report Day</label>
+              <select
+                className="settings-input"
+                value={emailSettings.monthlyReportDay}
+                onChange={(e) => handleEmailSettingChange('monthlyReportDay', parseInt(e.target.value))}
+                style={{ width: '120px' }}
+              >
+                {Array.from({ length: 28 }, (_, i) => i + 1).map(day => (
+                  <option key={day} value={day}>
+                    {day === 1 ? '1st' : day === 2 ? '2nd' : day === 3 ? '3rd' : `${day}th`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="settings-note" style={{ marginTop: '16px' }}>
+            Reports include system health, efficiency metrics, and AI insights.
+            Note: Email sending requires server-side integration (SMTP or email API).
           </div>
         </div>
       </CollapsibleSection>

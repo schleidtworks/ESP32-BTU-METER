@@ -2,6 +2,7 @@
  * AI Operations Analyst Panel
  * AI-powered system analysis and recommendations
  * Supports OpenAI (GPT) and Anthropic (Claude) APIs
+ * Logs daily summaries to localStorage
  */
 
 import { useEffect, useState, useCallback } from 'react';
@@ -13,6 +14,10 @@ import {
   type AnalysisInsight,
   type AIProvider,
 } from '../../services/ai.service';
+import {
+  saveSummary,
+  hasLoggedToday,
+} from '../../services/summaryLog.service';
 
 type AnalysisPeriod = 'day' | 'week' | 'month' | 'year';
 
@@ -93,10 +98,40 @@ export function AIOperationsAnalyst({ apiKey, provider = 'anthropic' }: AIOperat
   const [period, setPeriod] = useState<AnalysisPeriod>('day');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>(provider);
-
   // Calculate health score from insights
   const healthScore = analysis ? calculateHealthScore(analysis.insights) : 100;
   const healthGrade = getHealthGrade(healthScore);
+
+  // Map AI provider to log provider type
+  const mapProviderForLog = (aiProvider: AIProvider | 'mock' | undefined): 'claude' | 'gpt' | 'demo' => {
+    if (aiProvider === 'anthropic') return 'claude';
+    if (aiProvider === 'openai') return 'gpt';
+    return 'demo';
+  };
+
+  // Log daily summary to localStorage
+  const logDailySummary = useCallback((result: AIAnalysisResult, score: number, grade: string) => {
+    // Only log once per day for the 'day' period
+    if (period !== 'day' || hasLoggedToday()) return;
+
+    saveSummary({
+      period: 'day',
+      healthScore: score,
+      healthGrade: grade,
+      insights: result.insights.map(i => i.message),
+      recommendations: result.recommendations,
+      metrics: {
+        avgCOP: state.system.liveCop || 0,
+        totalBTU: state.system.totalBtu || 0,
+        totalKWh: state.system.totalKwhToday || 0,
+        runHours: 0, // Would need to track this
+        avgOutdoorTemp: state.weather.temp || 0,
+      },
+      provider: mapProviderForLog(result.provider),
+    });
+
+    console.log('📝 Daily AI summary logged to database');
+  }, [period, state]);
 
   const runAnalysis = useCallback(async () => {
     setLoading(true);
@@ -114,6 +149,11 @@ export function AIOperationsAnalyst({ apiKey, provider = 'anthropic' }: AIOperat
       }
 
       setAnalysis(result);
+
+      // Log daily summary after analysis
+      const score = calculateHealthScore(result.insights);
+      const grade = getHealthGrade(score).grade;
+      logDailySummary(result, score, grade);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed');
       // Fall back to mock analysis on error
@@ -121,7 +161,7 @@ export function AIOperationsAnalyst({ apiKey, provider = 'anthropic' }: AIOperat
     } finally {
       setLoading(false);
     }
-  }, [state, apiKey, selectedProvider, period]);
+  }, [state, apiKey, selectedProvider, period, logDailySummary]);
 
   // Run analysis on mount and when period changes
   useEffect(() => {

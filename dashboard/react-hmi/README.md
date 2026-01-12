@@ -1,67 +1,218 @@
-# Honey Hill HVAC React HMI
+# Home Energy Monitoring System for Air-to-Water Heat Pumps
 
-Interactive HVAC dashboard for the Honey Hill air-to-water system. Built with React + TypeScript + Vite and designed to run in demo mode or with live data.
+A DIY energy monitoring dashboard for tracking the real-world performance of residential air-to-water heat pump systems. Built with an ESP32, temperature sensors, flow meters, and a React dashboard.
+
+**The Goal**: Answer the question every heat pump owner asks - *"Is this thing actually saving me money?"*
+
+---
+
+## Why This Exists
+
+Air-to-water heat pumps are becoming popular for home heating, but most homeowners have no idea if their system is performing efficiently. Manufacturer specs say "COP of 4.0!" but what are YOU actually getting in YOUR climate with YOUR installation?
+
+This project measures:
+- **Actual BTU output** from temperature sensors and flow meters
+- **Real electricity consumption** from CT clamps
+- **True COP** calculated from measured data, not guesses
+- **Cost per MMBTU** compared to natural gas prices
+
+---
+
+## How It Works
+
+### The Sensors (ESP32-based)
+
+```
+Water Loop Monitoring:
+├── DS18B20 Temperature Sensors (supply & return temps)
+├── GREDIA Hall Effect Flow Meters (GPM)
+└── Emporia Vue CT Clamps (electricity usage)
+
+BTU Calculation:
+BTU/hr = 500 x GPM x (Supply Temp - Return Temp)
+
+COP Calculation:
+COP = BTU Output / (kWh x 3412)
+```
+
+### The Dashboard (React + TypeScript)
+
+A retro-styled web interface that displays:
+- Live system schematic with temps and flow rates
+- Real-time COP and BTU readings
+- Daily/monthly cost tracking
+- Comparison to local natural gas prices (EIA data)
+- AI-powered analysis (optional, uses Claude or GPT)
+
+---
+
+## My Setup
+
+| Component | Model |
+|-----------|-------|
+| Heat Pump | Apollo 5-Ton Air-to-Water (MBTEK EVI Inverter) |
+| Buffer Tank | 30 Gallon thermal storage |
+| Distribution | 3x Hydronic Air Handlers + Radiant Snow Melt |
+| Controller | ESP32 DevKit V1 |
+| Temp Sensors | DS18B20 OneWire (10 sensors on single bus) |
+| Flow Meters | GREDIA Hall Effect (450 pulses/gallon) |
+| Power Monitor | Emporia Vue with 5 CT clamps |
+
+---
+
+## Key Features
+
+### Energy Monitoring
+- **Real-time BTU output** per zone (calculated from flow + delta-T)
+- **Live COP calculation** updated every few seconds
+- **Daily/monthly energy totals** with historical tracking
+- **kWh tracking** via Emporia Vue CT clamps
+- **Multi-zone support** for independent air handlers
+
+### Cost Analysis
+- **Price per MMBTU** - Your actual heating cost calculated from real data
+- **EIA comparison** - Side-by-side with natural gas prices for your state
+- **Breakeven COP calculator** - Know exactly when heat pump beats gas
+- **Daily cost log** - Track spending over time with CSV export
+- **Savings tracker** - See monthly/yearly savings vs alternative fuels
+
+### Live System Schematic
+- **Animated flow visualization** - See water moving through pipes
+- **Temperature labels** - Supply and return temps at every point
+- **Flow rate display** - GPM readings at each zone
+- **Equipment status** - Running/stopped indicators
+- **Heat pump, buffer tank, air handlers** - Full system view
+
+### Smart Alerts & Alarm Log
+- **Low COP warnings** - Catch efficiency problems early
+- **Flow rate issues** - Detect pump failures or air locks
+- **Temperature anomalies** - High delta-T, frozen pipes
+- **Sensor offline** - Know when sensors go stale
+- **Start/end times** - Track how long issues lasted
+- **Duration tracking** - See alert history with ACTIVE badge
+
+### AI Operations Analyst ("Simon Says")
+- **Health score** - 0-100 grade with A-F rating
+- **Period analysis** - Daily, weekly, monthly, yearly views
+- **Efficiency insights** - AI-generated recommendations
+- **Auto-logging** - Saves daily summaries automatically
+- **Claude or GPT** - Works with either API (or demo mode)
+
+### Email Reports
+- **Daily reports** - Morning summary of yesterday's performance
+- **Monthly reports** - Full month analysis with trends
+- **Multiple recipients** - Add your email list
+- **HTML formatted** - Professional reports with charts
+- **Cost analysis included** - Savings vs gas calculated
+
+### Data Export & History
+- **CSV export** - Download price tracking data
+- **JSON export** - Full AI summary history
+- **Historical view** - Browse past daily summaries
+- **Performance trends** - See if efficiency is improving or declining
+
+### Dashboard UI
+- **4 themes** - Retro (8-bit), Viessmann (clean), Dark, Apple (iOS)
+- **Responsive layout** - Works on desktop and tablet
+- **ESP32 pin map** - Visual GPIO reference
+- **Weather integration** - Local conditions display
+- **Clock with date** - System time reference
+
+---
 
 ## Quick Start
 
 ```bash
+# Clone and run the dashboard
+cd dashboard/react-hmi
 npm install
 npm run dev
 ```
 
-Open the URL shown by Vite (typically `http://localhost:5173/`).
+Opens at http://localhost:5173 in **demo mode** (simulated data).
 
-## What This UI Does
+For real monitoring, connect your ESP32 via MQTT.
 
-- Real-time dashboard with system KPIs, trend charts, and alert log.
-- System schematic with animated flow, clickable nodes, and sprite-based equipment.
-- Area and meter drill-downs with week/month/year charts.
-- Export selected meters to CSV (Excel-friendly).
-- Weather pill with hover dropdown forecast and condition icons.
-- Theme switcher: Retro, Viessmann-style, Dark.
-- Wallboard mode (full-screen view, auto-rotating tabs).
-- Replay timeline to scrub the last 24h or 7d (demo mode).
-- Area heatmap, maintenance panel, and energy cost cockpit.
+---
 
-## Navigation
+## BTU Meter Calculation
 
-- Tabs (top): Overview, Areas, Meters, Export
-- Sidebar: quick navigation by area or meter
-- Click/tap a zone or schematic node to open history popup
+The core formula for hydronic systems:
 
-## Data + Demo Mode
+```
+BTU/hr = 500 x GPM x Delta-T
 
-This build runs in demo mode by default and simulates:
+Where:
+- 500 = water constant (8.33 lb/gal x 60 min/hr)
+- GPM = flow rate from meter
+- Delta-T = supply temp minus return temp (°F)
+```
 
-- Temp sensors (supply/return)
-- Flow meters (GPM)
-- BTU calculations
-- COP
-- Pump states
-- Weather
-- Alerts and anomalies
+Example: 5 GPM with 10°F delta = 25,000 BTU/hr
 
-## Key Controls
+---
 
-- Theme toggle (Retro / Viessmann / Dark)
-- Wallboard mode button in header
-- Collapsible sections for all major panels
-- Replay timeline scrubber (24h / 7d)
+## Is Your Heat Pump Worth It?
+
+The dashboard calculates your **breakeven COP** - the efficiency needed to beat natural gas:
+
+```
+Breakeven COP = (Electricity Rate x 1,000,000) / (Gas Rate x 3,412)
+
+Example (CT prices):
+- Electricity: $0.25/kWh
+- Natural Gas: $18.50/MMBTU
+- Breakeven COP = ($0.25 x 1,000,000) / ($18.50 x 3,412) = 3.96
+
+If your COP > 3.96, heat pump is cheaper than gas
+If your COP < 3.96, you'd save money with gas
+```
+
+---
+
+## Project Structure
+
+```
+ESP32-BTU-METER/
+├── dashboard/
+│   └── react-hmi/          # React dashboard
+│       ├── src/
+│       │   ├── components/ # UI components
+│       │   ├── services/   # AI, pricing, reports
+│       │   └── types/      # TypeScript definitions
+│       └── package.json
+├── firmware/               # ESP32 code (coming)
+└── README.md
+```
+
+---
 
 ## Configuration
 
-- Energy rate (USD/kWh): `src/App.tsx` `ENERGY_RATE_PER_KWH`
-- Buffer tank capacity: `src/config/system.config.ts`
-- System layout and areas: `src/config/system.config.ts`
-- Demo generator: `src/services/demo.service.ts`
+**Electricity Rate**: Default $0.25/kWh (CT average)
 
-## Assets
+**Natural Gas Rate**: Default $18.50/MMBTU (EIA CT residential)
 
-Sprites are stored in `src/assets/sprites/` (SVG).
+Both configurable in the dashboard settings.
 
-## Next Steps (Optional)
+---
 
-- Wire MQTT for live sensors
-- Integrate Emporia CT data
-- Add InfluxDB historical queries
-- Map real DHW tank data into the UI
+## Hardware BOM
+
+| Part | Approx Cost |
+|------|-------------|
+| ESP32 DevKit V1 | $10 |
+| DS18B20 sensors (10-pack) | $15 |
+| GREDIA flow meters (x3) | $60 |
+| Emporia Vue (16 channel) | $150 |
+| Waterproof enclosure | $20 |
+| Misc (wire, connectors) | $25 |
+| **Total** | **~$280** |
+
+---
+
+## Credits
+
+**Built by**: Schleidt Works - [schleidtworks.com](https://schleidtworks.com)
+
+*Proving heat pumps work in cold climates, one BTU at a time.*

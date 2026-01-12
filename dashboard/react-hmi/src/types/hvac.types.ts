@@ -206,7 +206,30 @@ export interface Alert {
   value?: number;
   threshold?: number;
   timestamp: Date;
+  startTime: Date;
+  endTime?: Date;  // Optional - null if alert is ongoing
   acknowledged: boolean;
+}
+
+// === AI SUMMARY LOG ===
+
+export interface AISummaryLog {
+  id: string;
+  date: string;  // YYYY-MM-DD format
+  timestamp: Date;
+  period: 'day' | 'week' | 'month' | 'year';
+  healthScore: number;
+  healthGrade: string;
+  insights: string[];
+  recommendations: string[];
+  metrics: {
+    avgCOP: number;
+    totalBTU: number;
+    totalKWh: number;
+    runHours: number;
+    avgOutdoorTemp: number;
+  };
+  provider: 'claude' | 'gpt' | 'demo';
 }
 
 export interface AnomalyThresholds {
