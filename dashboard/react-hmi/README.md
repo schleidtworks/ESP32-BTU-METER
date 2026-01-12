@@ -211,8 +211,8 @@ Both configurable in the dashboard settings.
 
 ---
 
-## Credits
+## License
 
-**Built by**: Schleidt Works - [schleidtworks.com](https://schleidtworks.com)
+Copyright 2024-2025 Schleidt Works. All rights reserved.
 
-*Proving heat pumps work in cold climates, one BTU at a time.*
+[schleidtworks.com](https://schleidtworks.com)
