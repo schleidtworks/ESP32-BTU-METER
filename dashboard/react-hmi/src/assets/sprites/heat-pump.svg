@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="8" y="10" width="48" height="44" rx="4" fill="#1a1c24" stroke="#44ff88" stroke-width="2"/>
+  <rect x="14" y="16" width="36" height="26" fill="#0a0a12" stroke="#2a3a4a" stroke-width="2"/>
+  <circle cx="24" cy="29" r="6" fill="#ff4444"/>
+  <circle cx="40" cy="29" r="6" fill="#4488ff"/>
+  <text x="32" y="52" font-size="8" text-anchor="middle" fill="#e0e8f0">HP</text>
+</svg>

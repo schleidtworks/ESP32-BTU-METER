@@ -1,0 +1,641 @@
+/**
+ * Honey Hill HVAC Dashboard
+ * Main Application Component
+ */
+
+import { useState, useEffect } from 'react';
+import { HvacProvider, useHvac, useSystem, useWeather, useAlerts, useHeatPump, useBuffer, useAhus, usePumps, useSnowMelt } from './context/HvacContext';
+import { LOCATION, AREAS } from './config/system.config';
+import { ViewMode, AreaId } from './types/hvac.types';
+
+// Format temperature with one decimal
+const formatTemp = (temp: number | null) => temp !== null ? `${temp.toFixed(1)}°F` : '--';
+
+// Format BTU with commas
+const formatBtu = (btu: number | null) => btu !== null ? btu.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '--';
+
+// Format COP
+const formatCop = (cop: number | null) => cop !== null ? cop.toFixed(2) : '--';
+
+// Clock component
+function Clock() {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return <span>{time.toLocaleTimeString()}</span>;
+}
+
+// Header component
+function Header() {
+  const { isDemo } = useHvac();
+  const weather = useWeather();
+  const system = useSystem();
+
+  return (
+    <header className="header">
+      <h1 className="header-title">HONEY HILL HVAC SYSTEM</h1>
+      <div className="header-status">
+        <div className={`status-badge ${isDemo ? 'demo' : 'connected'}`}>
+          {isDemo ? '🟡 DEMO MODE' : '🟢 Connected'}
+        </div>
+        <div className="status-badge">
+          <Clock />
+        </div>
+        <div className="status-badge">
+          🌡️ Outdoor: {formatTemp(weather.temp)}
+        </div>
+        <div className="status-badge">
+          📍 {system.location}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+// Schleidt Works logo with 8-bit pixel effect
+const LOGO_URL = 'https://schleidtworks.com/wp-content/uploads/2020/08/2_Schleidt-Works-Logo.png';
+
+function PixelLogo() {
+  return (
+    <div className="sidebar-section" style={{ textAlign: 'center', padding: '16px' }}>
+      <img
+        src={LOGO_URL}
+        alt="Schleidt Works"
+        style={{
+          width: '180px',
+          height: 'auto',
+          imageRendering: 'pixelated',
+          filter: 'contrast(1.1) saturate(1.2)',
+          borderRadius: '4px',
+        }}
+      />
+      <div style={{
+        fontFamily: 'var(--font-pixel)',
+        fontSize: '6px',
+        color: 'var(--text-dim)',
+        marginTop: '8px',
+        letterSpacing: '1px',
+      }}>
+        ENERGY CONSULTING
+      </div>
+    </div>
+  );
+}
+
+// Sidebar component
+function Sidebar({ currentView, onViewChange }: { currentView: string; onViewChange: (view: string) => void }) {
+  return (
+    <nav className="sidebar">
+      <PixelLogo />
+      <div className="sidebar-section">
+        <div className="sidebar-title">Dashboard</div>
+        <div
+          className={`nav-item ${currentView === 'schematic' ? 'active' : ''}`}
+          onClick={() => onViewChange('schematic')}
+        >
+          <span className="nav-item-icon">🏠</span>
+          System Overview
+        </div>
+      </div>
+
+      <div className="sidebar-section">
+        <div className="sidebar-title">By Area</div>
+        {Object.values(AREAS).map(area => (
+          <div
+            key={area.id}
+            className={`nav-item ${currentView === `area-${area.id}` ? 'active' : ''}`}
+            onClick={() => onViewChange(`area-${area.id}`)}
+          >
+            <span className="nav-item-icon">{area.icon}</span>
+            {area.name}
+          </div>
+        ))}
+      </div>
+
+      <div className="sidebar-section">
+        <div className="sidebar-title">By Meter</div>
+        <div
+          className={`nav-item ${currentView === 'meter-hp' ? 'active' : ''}`}
+          onClick={() => onViewChange('meter-hp')}
+        >
+          <span className="nav-item-icon">🔥</span>
+          Heat Pump
+        </div>
+        <div
+          className={`nav-item ${currentView === 'meter-ahu1' ? 'active' : ''}`}
+          onClick={() => onViewChange('meter-ahu1')}
+        >
+          <span className="nav-item-icon">💨</span>
+          AHU 1 Meter
+        </div>
+        <div
+          className={`nav-item ${currentView === 'meter-ahu2' ? 'active' : ''}`}
+          onClick={() => onViewChange('meter-ahu2')}
+        >
+          <span className="nav-item-icon">💨</span>
+          AHU 2 Meter
+        </div>
+        <div
+          className={`nav-item ${currentView === 'meter-ahu3' ? 'active' : ''}`}
+          onClick={() => onViewChange('meter-ahu3')}
+        >
+          <span className="nav-item-icon">💨</span>
+          AHU 3 Meter
+        </div>
+        <div
+          className={`nav-item ${currentView === 'meter-snow' ? 'active' : ''}`}
+          onClick={() => onViewChange('meter-snow')}
+        >
+          <span className="nav-item-icon">❄️</span>
+          Snow Melt
+        </div>
+      </div>
+
+      <div className="sidebar-section">
+        <div className="sidebar-title">Tools</div>
+        <div
+          className={`nav-item ${currentView === 'export' ? 'active' : ''}`}
+          onClick={() => onViewChange('export')}
+        >
+          <span className="nav-item-icon">📊</span>
+          Export Data
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+// Alerts bar
+function AlertsBar() {
+  const alerts = useAlerts();
+
+  return (
+    <div className="alerts-bar">
+      {alerts.map(alert => (
+        <div key={alert.id} className={`alert-badge ${alert.level}`}>
+          {alert.level === 'info' && '🟢'}
+          {alert.level === 'warning' && '🟡'}
+          {alert.level === 'error' && '🔴'}
+          {alert.message}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Stat card component
+function StatCard({ title, value, subtitle, colorClass = '' }: {
+  title: string;
+  value: string;
+  subtitle: string;
+  colorClass?: string;
+}) {
+  return (
+    <div className="card stat-card">
+      <div className="card-title">{title}</div>
+      <div className={`card-value ${colorClass}`}>{value}</div>
+      <div className="card-label">{subtitle}</div>
+    </div>
+  );
+}
+
+// Gauge component
+function Gauge({ value, min, max, lowThreshold, highThreshold }: {
+  value: number;
+  min: number;
+  max: number;
+  lowThreshold?: number;
+  highThreshold?: number;
+}) {
+  const percent = Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100));
+  let className = 'gauge-fill';
+  if (lowThreshold && value < lowThreshold) className += ' low';
+  else if (highThreshold && value > highThreshold) className += ' high';
+
+  return (
+    <div className="gauge-container">
+      <div className={className} style={{ width: `${percent}%` }} />
+    </div>
+  );
+}
+
+// Pump indicator
+function PumpIndicator({ name, running }: { name: string; running: boolean }) {
+  return (
+    <div className={`pump-indicator ${running ? 'running' : ''}`}>
+      <span className="pump-icon">⚙️</span>
+      <span className="pump-label">{name}</span>
+    </div>
+  );
+}
+
+// Equipment card for AHU
+function AhuCard({ id, ahu }: { id: string; ahu: any }) {
+  const isRunning = ahu.pumpOn || ahu.fanOn;
+
+  return (
+    <div className={`card equipment-card ${isRunning ? 'running' : ''}`}>
+      <div className="card-title">{ahu.name}</div>
+      <div className="card-subtitle">{AREAS[ahu.area as AreaId]?.name}</div>
+      <div className="equipment-icon">
+        <span className={ahu.fanOn ? 'fan-spinning' : ''}>🌀</span>
+      </div>
+      <div className={`equipment-status ${isRunning ? 'on' : 'off'}`}>
+        {isRunning ? 'RUNNING' : 'STANDBY'}
+      </div>
+      <div className="sprite-stats">
+        <div>ΔT: <span>{formatTemp(ahu.deltaT)}</span></div>
+        <div>BTU/hr: <span>{formatBtu(ahu.btu)}</span></div>
+        <div>Flow: <span>{ahu.gpm.toFixed(1)} GPM</span></div>
+      </div>
+    </div>
+  );
+}
+
+// Heat pump card
+function HeatPumpCard() {
+  const hp = useHeatPump();
+
+  return (
+    <div className={`card equipment-card ${hp.mode}`}>
+      <div className="card-title">APOLLO 5-TON</div>
+      <div className="card-subtitle">Air-to-Water Heat Pump</div>
+      <div className="equipment-icon">❄️🔥</div>
+      <div className={`equipment-status ${hp.mode}`}>
+        {hp.mode.toUpperCase()}
+      </div>
+      <div className="sprite-stats">
+        <div>Supply: <span className="text-hot">{formatTemp(hp.supplyTemp)}</span></div>
+        <div>Return: <span className="text-cold">{formatTemp(hp.returnTemp)}</span></div>
+        <div>ΔT: <span>{formatTemp(hp.deltaT)}</span></div>
+        <div>Power: <span>{hp.powerKw?.toFixed(2) ?? '--'} kW</span></div>
+      </div>
+    </div>
+  );
+}
+
+// Buffer tank card
+function BufferTankCard() {
+  const buffer = useBuffer();
+
+  return (
+    <div className="card equipment-card">
+      <div className="card-title">BUFFER TANK</div>
+      <div className="card-subtitle">30 Gallon</div>
+      <div className="equipment-icon">🛢️</div>
+      <div className="sprite-stats">
+        <div>Temp: <span>{formatTemp(buffer.temp)}</span></div>
+        <div>Pressure: <span>{buffer.pressure?.toFixed(1) ?? '--'} PSI</span></div>
+      </div>
+      <Gauge
+        value={buffer.pressure ?? 15}
+        min={0}
+        max={30}
+        lowThreshold={10}
+        highThreshold={25}
+      />
+    </div>
+  );
+}
+
+// Snow melt card with blinking snowflake when active
+function SnowMeltCard() {
+  const snowMelt = useSnowMelt();
+  const isActive = snowMelt.pumpOn || (snowMelt.btu && snowMelt.btu > 0);
+
+  return (
+    <div className={`card equipment-card ${isActive ? 'running' : ''}`}>
+      <div className="card-title">SNOW MELT</div>
+      <div className="card-subtitle">HBX SNO-0600 Controller</div>
+      <div className="equipment-icon">
+        <span className={isActive ? 'snowflake-blink' : ''}>❄️</span>
+      </div>
+      <div className={`equipment-status ${snowMelt.hbxMode === 'melt' ? 'on' : snowMelt.hbxMode === 'idle' ? 'standby' : 'off'}`}>
+        {snowMelt.hbxMode?.toUpperCase() || 'OFF'}
+      </div>
+      <div className="sprite-stats">
+        <div>Loop Temp: <span>{formatTemp(snowMelt.loopTemp)}</span></div>
+        <div>Slab Temp: <span>{formatTemp(snowMelt.slabTemp)}</span></div>
+        <div>BTU/hr: <span>{formatBtu(snowMelt.btu)}</span></div>
+        <div>Flow: <span>{snowMelt.gpm.toFixed(1)} GPM</span></div>
+        {snowMelt.mixingValvePos !== null && (
+          <div>Mix Valve: <span>{snowMelt.mixingValvePos?.toFixed(0)}%</span></div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// System overview / schematic view
+function SchematicView() {
+  const system = useSystem();
+  const ahus = useAhus();
+  const pumps = usePumps();
+
+  return (
+    <div>
+      {/* Stats row */}
+      <div className="stats-grid">
+        <StatCard
+          title="⚡ LIVE COP"
+          value={formatCop(system.liveCop)}
+          subtitle="BTU Out / kW In"
+          colorClass="warning"
+        />
+        <StatCard
+          title="📊 DAILY COP"
+          value={formatCop(system.dailyCop)}
+          subtitle="Today's Average"
+        />
+        <StatCard
+          title="🔥 TOTAL BTU/hr"
+          value={formatBtu(system.totalBtu)}
+          subtitle="All Zones"
+        />
+        <StatCard
+          title="⚡ POWER"
+          value={`${system.totalPowerKw?.toFixed(2) ?? '--'} kW`}
+          subtitle="From Emporia"
+        />
+        <StatCard
+          title="🌊 TOTAL FLOW"
+          value={`${system.totalGpm.toFixed(1)} GPM`}
+          subtitle="All Loops"
+        />
+      </div>
+
+      {/* Equipment grid */}
+      <div className="equipment-grid">
+        <HeatPumpCard />
+        <BufferTankCard />
+        {Object.entries(ahus).map(([id, ahu]) => (
+          <AhuCard key={id} id={id} ahu={ahu} />
+        ))}
+        <SnowMeltCard />
+      </div>
+
+      {/* Pumps row */}
+      <div style={{ marginTop: '24px' }}>
+        <div className="card-title" style={{ marginBottom: '12px' }}>GRUNDFOS PUMPS</div>
+        <div className="pump-row">
+          {Object.entries(pumps).map(([id, pump]) => (
+            <PumpIndicator key={id} name={pump.name} running={pump.running} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Area detail view
+function AreaDetailView({ areaId }: { areaId: AreaId }) {
+  const area = AREAS[areaId];
+  const ahus = useAhus();
+  const { state } = useHvac();
+
+  // Find meters and equipment for this area
+  const areaAhus = Object.entries(ahus).filter(([_, ahu]) => ahu.area === areaId);
+  const areaMeter = state.meters[area.btuMeters[0] as keyof typeof state.meters];
+
+  if (!area) return <div>Area not found</div>;
+
+  return (
+    <div>
+      <h2 className="font-pixel text-green glow-green" style={{ marginBottom: '16px' }}>
+        {area.icon} {area.name}
+      </h2>
+      <p className="text-dim" style={{ marginBottom: '24px' }}>{area.description}</p>
+
+      {/* Area stats */}
+      <div className="stats-grid">
+        <StatCard
+          title="🔥 AREA BTU/hr"
+          value={formatBtu(areaAhus.reduce((sum, [_, ahu]) => sum + (ahu.btu ?? 0), 0))}
+          subtitle="Current Output"
+        />
+        <StatCard
+          title="📐 AREA SIZE"
+          value={`${area.sqft} sq ft`}
+          subtitle="Conditioned Space"
+        />
+      </div>
+
+      {/* Equipment in this area */}
+      <div className="card-title" style={{ marginBottom: '12px' }}>EQUIPMENT</div>
+      <div className="equipment-grid">
+        {areaAhus.map(([id, ahu]) => (
+          <AhuCard key={id} id={id} ahu={ahu} />
+        ))}
+      </div>
+
+      {/* Meter details */}
+      {areaMeter && (
+        <div style={{ marginTop: '24px' }}>
+          <div className="card-title" style={{ marginBottom: '12px' }}>BTU METER</div>
+          <div className="card">
+            <div className="stats-grid" style={{ marginBottom: 0 }}>
+              <div>
+                <div className="text-dim">Supply Temp</div>
+                <div className="card-value hot">{formatTemp(areaMeter.supplyTemp)}</div>
+              </div>
+              <div>
+                <div className="text-dim">Return Temp</div>
+                <div className="card-value cold">{formatTemp(areaMeter.returnTemp)}</div>
+              </div>
+              <div>
+                <div className="text-dim">Delta T</div>
+                <div className="card-value">{formatTemp(areaMeter.deltaT)}</div>
+              </div>
+              <div>
+                <div className="text-dim">BTU/hr</div>
+                <div className="card-value">{formatBtu(areaMeter.btu)}</div>
+              </div>
+              <div>
+                <div className="text-dim">Flow Rate</div>
+                <div className="card-value">{areaMeter.gpm.toFixed(1)} GPM</div>
+              </div>
+              <div>
+                <div className="text-dim">Power (CT)</div>
+                <div className="card-value">{areaMeter.powerKw?.toFixed(2) ?? '--'} kW</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Meter detail view
+function MeterDetailView({ meterId }: { meterId: string }) {
+  const { state } = useHvac();
+
+  // Map view ID to meter ID
+  const meterMap: Record<string, string> = {
+    'meter-hp': 'hp-meter',
+    'meter-ahu1': 'ahu1-meter',
+    'meter-ahu2': 'ahu2-meter',
+    'meter-ahu3': 'ahu3-meter',
+    'meter-snow': 'snow-meter',
+  };
+
+  const actualMeterId = meterMap[meterId];
+  const meter = state.meters[actualMeterId as keyof typeof state.meters];
+
+  if (!meter) return <div>Meter not found</div>;
+
+  return (
+    <div>
+      <h2 className="font-pixel text-green glow-green" style={{ marginBottom: '16px' }}>
+        📊 {meter.name}
+      </h2>
+      <p className="text-dim" style={{ marginBottom: '24px' }}>
+        Area: {AREAS[meter.area]?.name ?? meter.area}
+      </p>
+
+      {/* Real-time readings */}
+      <div className="card" style={{ marginBottom: '24px' }}>
+        <div className="card-title">REAL-TIME READINGS (0.5s refresh)</div>
+        <div className="stats-grid" style={{ marginTop: '16px', marginBottom: 0 }}>
+          <div className="stat-card">
+            <div className="text-dim">Supply Temp</div>
+            <div className="card-value hot">{formatTemp(meter.supplyTemp)}</div>
+            <div className="text-dim">Sensor 0</div>
+          </div>
+          <div className="stat-card">
+            <div className="text-dim">Return Temp</div>
+            <div className="card-value cold">{formatTemp(meter.returnTemp)}</div>
+            <div className="text-dim">Sensor 1</div>
+          </div>
+          <div className="stat-card">
+            <div className="text-dim">Delta T</div>
+            <div className="card-value">{formatTemp(meter.deltaT)}</div>
+            <div className="text-dim">Supply - Return</div>
+          </div>
+          <div className="stat-card">
+            <div className="text-dim">BTU/hr</div>
+            <div className="card-value">{formatBtu(meter.btu)}</div>
+            <div className="text-dim">500 × GPM × ΔT</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Additional data */}
+      <div className="stats-grid">
+        <div className="card stat-card">
+          <div className="card-title">🌊 FLOW RATE</div>
+          <div className="card-value">{meter.gpm.toFixed(1)}</div>
+          <div className="card-label">GPM</div>
+        </div>
+        <div className="card stat-card">
+          <div className="card-title">⚡ POWER (CT)</div>
+          <div className="card-value">{meter.powerKw?.toFixed(2) ?? '--'}</div>
+          <div className="card-label">kW (Emporia)</div>
+        </div>
+        <div className="card stat-card">
+          <div className="card-title">📈 LOCAL COP</div>
+          <div className="card-value warning">{formatCop(meter.cop)}</div>
+          <div className="card-label">BTU / kW</div>
+        </div>
+        <div className="card stat-card">
+          <div className="card-title">📡 STATUS</div>
+          <div className={`card-value ${meter.status === 'online' ? 'text-green' : 'text-dim'}`}>
+            {meter.status.toUpperCase()}
+          </div>
+          <div className="card-label">Sensor Status</div>
+        </div>
+      </div>
+
+      {/* Sensor info */}
+      <div className="card" style={{ marginTop: '24px' }}>
+        <div className="card-title">SENSOR INFO</div>
+        <div className="sprite-stats" style={{ marginTop: '12px' }}>
+          <div>Supply Sensor: <span>DS18B20 (OneWire)</span></div>
+          <div>Return Sensor: <span>DS18B20 (OneWire)</span></div>
+          <div>Flow Meter: <span>GREDIA Hall Effect</span></div>
+          <div>Calculation: <span>BTU/hr = 500 × GPM × ΔT</span></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Export view
+function ExportView() {
+  return (
+    <div>
+      <h2 className="font-pixel text-green glow-green" style={{ marginBottom: '16px' }}>
+        📊 Export Data
+      </h2>
+      <p className="text-dim" style={{ marginBottom: '24px' }}>
+        Export historical BTU meter data for analysis.
+      </p>
+
+      <div className="card">
+        <div className="card-title">EXPORT OPTIONS</div>
+        <p style={{ marginTop: '16px', color: 'var(--text-dim)' }}>
+          Coming soon: Select date range, meters, and export format (CSV/JSON).
+        </p>
+        <p style={{ marginTop: '8px', color: 'var(--text-dim)' }}>
+          Requires InfluxDB connection for historical data.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Main content router
+function ContentArea({ currentView }: { currentView: string }) {
+  // Route to appropriate view
+  if (currentView === 'schematic') {
+    return <SchematicView />;
+  }
+
+  if (currentView.startsWith('area-')) {
+    const areaId = currentView.replace('area-', '') as AreaId;
+    return <AreaDetailView areaId={areaId} />;
+  }
+
+  if (currentView.startsWith('meter-')) {
+    return <MeterDetailView meterId={currentView} />;
+  }
+
+  if (currentView === 'export') {
+    return <ExportView />;
+  }
+
+  return <SchematicView />;
+}
+
+// Main app layout
+function AppLayout() {
+  const [currentView, setCurrentView] = useState('schematic');
+
+  return (
+    <div className="app-layout">
+      <Header />
+      <div className="main-content">
+        <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+        <main className="content-area">
+          <ContentArea currentView={currentView} />
+        </main>
+      </div>
+      <AlertsBar />
+    </div>
+  );
+}
+
+// Root app with provider
+function App() {
+  return (
+    <HvacProvider>
+      <AppLayout />
+    </HvacProvider>
+  );
+}
+
+export default App;
